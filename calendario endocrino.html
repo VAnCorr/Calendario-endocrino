@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario de Clases - Dr. Indalecio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            padding: 30px;
+        }
+
+        .class-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .class-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .class-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .unidad-1 { border-left-color: #e74c3c; }
+        .unidad-2 { border-left-color: #f39c12; }
+        .unidad-3 { border-left-color: #27ae60; }
+
+        .date-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .date-badge {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-right: 15px;
+            font-size: 0.9rem;
+        }
+
+        .day-badge {
+            background: rgba(52, 152, 219, 0.1);
+            color: #2980b9;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .doctor-info {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .doctor-info::before {
+            content: '👨‍⚕️';
+            margin-right: 8px;
+        }
+
+        .topics-list {
+            margin-top: 20px;
+        }
+
+        .topic {
+            background: rgba(52, 152, 219, 0.05);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 3px solid #3498db;
+            transition: all 0.3s ease;
+        }
+
+        .topic:hover {
+            background: rgba(52, 152, 219, 0.1);
+            transform: translateX(5px);
+        }
+
+        .unit-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .topic-title {
+            color: #34495e;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+
+        .unit-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .unit-badge.unidad-2 {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+        }
+
+        .unit-badge.unidad-3 {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        .reading-suggestion {
+            background: rgba(243, 156, 18, 0.1);
+            border-left: 3px solid #f39c12;
+            font-style: italic;
+            color: #e67e22;
+        }
+
+        .reading-suggestion .topic-title {
+            color: #d68910;
+        }
+
+        .stats {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .stat-item h3 {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-item p {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .syndrome-badge {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .objectives-button {
+            background: linear-gradient(135deg, #16a085, #1abc9c);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .objectives-button:hover {
+            background: linear-gradient(135deg, #138f7a, #17a2b8);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(22, 160, 133, 0.3);
+        }
+
+        .objectives-button.active {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+
+        .objectives-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out, padding 0.4s ease-in-out;
+            background: rgba(22, 160, 133, 0.05);
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .objectives-content.active {
+            max-height: 500px;
+            padding: 20px;
+        }
+
+        .objective-item {
+            background: white;
+            margin: 8px 0;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border-left: 4px solid #1abc9c;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .objective-item::before {
+            content: '🎯';
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .objective-text {
+            color: #2c3e50;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .no-classes {
+            text-align: center;
+            padding: 40px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .calendar-grid {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+            
+            .class-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Calendario de Clases</h1>
+            <p><strong>Dr. Indalecio</strong> - Residente de Tercer Año</p>
+            <p>Cuidados Intensivos Adultos</p>
+            <p style="margin-top: 10px; font-size: 1rem; opacity: 0.8;">Emergencias Endocrinas</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <h3>7</h3>
+                <p>Clases Programadas</p>
+            </div>
+            <div class="stat-item">
+                <h3>7</h3>
+                <p>Síndromes Endocrinos</p>
+            </div>
+            <div class="stat-item">
+                <h3>18</h3>
+                <p>Temas Específicos</p>
+            </div>
+        </div>
+
+        <div class="calendar-grid" id="calendar">
+            <!-- Las clases se generarán aquí con JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        const classData = [
+            {
+                fecha: '2025-06-16',
+                dia: 'Lunes',
+                docente: 'Dr. Vanegas',
+                sindrome: 'Trastornos Hipofisarios Agudos',
+                temas: [
+                    'Apoplejía hipofisiaria',
+                    'Manejo del paciente con tumor hipofisario grave'
+                ],
+                objetivos: [
+                    'Reconocer los signos clínicos y factores de riesgo de la apoplejía hipofisiaria en pacientes críticos.',
+                    'Describir el abordaje diagnóstico y el manejo urgente del paciente con tumor hipofisario en situación crítica.'
+                ]
+            },
+            {
+                fecha: '2025-06-19',
+                dia: 'Jueves',
+                docente: 'Dr. Mendoza',
+                sindrome: 'Trastornos del Agua: SIHAD e Insípida',
+                temas: [
+                    'Fisiología de hormona antidiurética',
+                    'SIHAD en el paciente grave',
+                    'Diabetes insípida en el paciente grave'
+                ],
+                objetivos: [
+                    'Explicar la fisiología y el papel de la hormona antidiurética en la homeostasis hídrica.',
+                    'Identificar los criterios diagnósticos y terapéuticos del SIHAD y la diabetes insípida en pacientes graves.',
+                    'Diferenciar el manejo de los principales trastornos del sodio en el paciente crítico.'
+                ]
+            },
+            {
+                fecha: '2025-06-23',
+                dia: 'Lunes',
+                docente: 'Dr. Espinoza',
+                sindrome: 'Crisis Hiperglucémicas y Hipoglucemia Grave',
+                temas: [
+                    'Control glucémico en UCI',
+                    'Hipoglucemia grave',
+                    'Hiperglucemia inducida por esteroides',
+                    'Crisis hiperglucémica'
+                ],
+                objetivos: [
+                    'Analizar la importancia del control glucémico estricto en la unidad de cuidados intensivos.',
+                    'Describir el manejo de la hiperglucemia inducida por esteroides y la crisis hiperglucémica.',
+                    'Reconocer la presentación clínica y tratamiento de la hipoglucemia grave en el paciente crítico.'
+                ]
+            },
+            {
+                fecha: '2025-06-26',
+                dia: 'Jueves',
+                docente: 'Dr. Manzanarez',
+                sindrome: 'Insuficiencia Adrenal Aguda',
+                temas: [
+                    'Fisiología adrenal',
+                    'Insuficiencia adrenal en el paciente grave'
+                ],
+                objetivos: [
+                    'Comprender la fisiología suprarrenal y su relevancia en la respuesta al estrés crítico.',
+                    'Diagnosticar y tratar la insuficiencia adrenal aguda en pacientes de cuidados intensivos.'
+                ]
+            },
+            {
+                fecha: '2025-06-30',
+                dia: 'Lunes',
+                docente: 'Dr. Delgado',
+                sindrome: 'Síndromes Tiroideos del Paciente Grave',
+                temas: [
+                    'Fisiología de hormonas tiroideas',
+                    'Farmacología en hipo e hipertiroidismo',
+                    'Síndrome del eutiroideo enfermo en el paciente grave'
+                ],
+                objetivos: [
+                    'Explicar la fisiopatología de la alteración tiroidea en el paciente grave (síndrome del eutiroideo enfermo).',
+                    'Seleccionar el manejo farmacológico adecuado en hipo e hipertiroidismo durante situaciones críticas.'
+                ]
+            },
+            {
+                fecha: '2025-07-03',
+                dia: 'Jueves',
+                docente: 'Dr. Altamirano',
+                sindrome: 'Emergencias Tiroideas',
+                temas: [
+                    'Coma mixedematoso',
+                    'Tormenta tiroidea'
+                ],
+                objetivos: [
+                    'Reconocer la presentación clínica, diagnóstico y manejo de las emergencias tiroideas: coma mixedematoso y tormenta tiroidea.',
+                    'Diferenciar entre crisis tiroideas hipo e hiperfuncionantes y su impacto en la morbimortalidad.'
+                ]
+            },
+            {
+                fecha: '2025-07-07',
+                dia: 'Lunes',
+                docente: 'Dr. Vanegas',
+                sindrome: 'Síndromes Metabólicos Complejos y Perioperatorio',
+                temas: [
+                    'Manejo perioperatorio del paciente con enfermedad tiroidea',
+                    'Manejo perioperatorio del paciente grave con tumor de hipófisis'
+                ],
+                objetivos: [
+                    'Integrar los conceptos de metabolismo de carbohidratos en el abordaje de pacientes críticos.',
+                    'Identificar los puntos clave del manejo perioperatorio en pacientes con enfermedad tiroidea o tumores hipofisarios (revisión como lectura sugerida).',
+                    'Valorar cuándo referir al paciente crítico para manejo quirúrgico o multidisciplinario.'
+                ]
+            }
+        ];
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                timeZone: 'UTC'
+            };
+            return date.toLocaleDateString('es-ES', options);
+        }
+
+        function getUnitFromSyndrome(sindrome) {
+            if (sindrome.includes('Hipofisarios') || sindrome.includes('del Agua')) return 'unidad-1';
+            if (sindrome.includes('Hiperglucémicas') || sindrome.includes('Adrenal') || sindrome.includes('Metabólicos')) return 'unidad-2';
+            if (sindrome.includes('Tiroideas') || sindrome.includes('Tiroideos')) return 'unidad-3';
+            return 'unidad-1';
+        }
+
+        function toggleObjectives(index) {
+            const content = document.getElementById(`objectives-${index}`);
+            const button = document.getElementById(`btn-${index}`);
+            const icon = button.querySelector('.icon');
+            
+            if (content.classList.contains('active')) {
+                content.classList.remove('active');
+                button.classList.remove('active');
+                button.innerHTML = '<span class="icon">📋</span> Ver Objetivos de Aprendizaje';
+            } else {
+                content.classList.add('active');
+                button.classList.add('active');
+                button.innerHTML = '<span class="icon">📖</span> Ocultar Objetivos';
+            }
+        }
+
+        function renderCalendar() {
+            const calendar = document.getElementById('calendar');
+            
+            classData.forEach((classItem, index) => {
+                const unitClass = getUnitFromSyndrome(classItem.sindrome);
+                
+                const card = document.createElement('div');
+                card.className = `class-card ${unitClass}`;
+                card.style.animationDelay = `${index * 0.1}s`;
+                
+                let topicsHTML = '';
+                if (classItem.temas && classItem.temas.length > 0) {
+                    classItem.temas.forEach(tema => {
+                        topicsHTML += `
+                            <div class="topic">
+                                <div class="topic-title">${tema}</div>
+                            </div>
+                        `;
+                    });
+                }
+
+                let objectivesHTML = '';
+                if (classItem.objetivos && classItem.objetivos.length > 0) {
+                    classItem.objetivos.forEach(objetivo => {
+                        objectivesHTML += `
+                            <div class="objective-item">
+                                <div class="objective-text">${objetivo}</div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                card.innerHTML = `
+                    <div class="date-info">
+                        <div class="date-badge">${formatDate(classItem.fecha)}</div>
+                        <div class="day-badge">${classItem.dia}</div>
+                    </div>
+                    <div class="doctor-info">${classItem.docente}</div>
+                    <div class="syndrome-badge">${classItem.sindrome}</div>
+                    <div class="topics-list">
+                        ${topicsHTML}
+                    </div>
+                    <button class="objectives-button" id="btn-${index}" onclick="toggleObjectives(${index})">
+                        <span class="icon">📋</span> Ver Objetivos de Aprendizaje
+                    </button>
+                    <div class="objectives-content" id="objectives-${index}">
+                        ${objectivesHTML}
+                    </div>
+                `;
+                
+                calendar.appendChild(card);
+            });
+        }
+
+        // Inicializar el calendario cuando se carga la página
+        document.addEventListener('DOMContentLoaded', renderCalendar);
+    </script>
+</body>
+</html>
